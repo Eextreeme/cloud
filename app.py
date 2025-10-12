@@ -19,6 +19,7 @@ DEVELOPMENT = "development"
 PRODUCTION = "production"
 FLASK_ENV = "FLASK_ENV"
 ADDITIONAL_CONFIG = "ADDITIONAL_CONFIG"
+#hello 123123412
 
 if __name__ == '__main__':
     flask_env = os.environ.get(FLASK_ENV, DEVELOPMENT).lower()
