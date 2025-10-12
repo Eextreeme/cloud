@@ -1298,70 +1298,10 @@ def _init_swagger(app: Flask) -> None:
         })
 
 def _init_trigger(app: Flask) -> None:
-    with app.app_context():
-            db.session.execute('DROP TRIGGER IF EXISTS trigger_specialty_id;')
-            db.session.execute('''
-            CREATE TRIGGER trigger_specialty_id
-            BEFORE INSERT ON doctors
-            FOR EACH ROW
-            BEGIN
-                IF NEW.doctor_id < 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Primary key (doctor_id) cannot be negative';
-                END IF;
-
-                IF NOT EXISTS (SELECT 1 FROM specialties WHERE specialties.specialty_id = NEW.specialty_id) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Specialty ID does not exist in the specialties table';
-                END IF;
-            END;
-            ''')
-
-            db.session.execute('DROP TRIGGER IF EXISTS prevent_symptomes_deletion;')
-            db.session.execute('DROP TRIGGER IF EXISTS prevent_specialty_name_ending_with_00;')
-
-            db.session.execute('DROP TRIGGER IF EXISTS validate_specialty_name;')
-            db.session.execute('''
-
-                                            CREATE TRIGGER validate_specialty_name
-                                            BEFORE INSERT ON specialties
-                                            FOR EACH ROW
-                                            BEGIN
-                                                IF NEW.specialty_name NOT IN ('Petro', 'Olha', 'Taras') THEN
-                                                    SIGNAL SQLSTATE '45000'
-                                                    SET MESSAGE_TEXT = 'Specialty name must be one of: Svitlana, Petro, Olha, Taras';
-                                                END IF;
-                                             END;
-                                               ''')
-
-
-            db.session.commit()
+    pass
 
 def _init_procedures(app: Flask) -> None:
-    with app.app_context():
-        db.session.execute('''
-            DROP PROCEDURE IF EXISTS AddDoctorSymptome;
-
-            CREATE PROCEDURE AddDoctorSymptome(
-                IN p_doctor_id INT,
-                IN p_symptome_id INT
-            )
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM doctors WHERE doctor_id = p_doctor_id) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'doctor_id does not exist in doctors table';
-                END IF;
-            
-                IF NOT EXISTS (SELECT 1 FROM symptomes WHERE symptome_id = p_symptome_id) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'symptome_id does not exist in symptomes table';
-                END IF;
-            
-                INSERT IGNORE INTO doctor_symptomes (doctor_id, symptome_id)
-                VALUES (p_doctor_id, p_symptome_id);
-            END;
-          ''')
-        db.session.commit()
+    pass
 
 def _init_sample_data(app: Flask) -> None:
     with app.app_context():
