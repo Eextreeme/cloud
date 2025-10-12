@@ -42,16 +42,16 @@ todos = {}
 def init_autodoc_swagger(app: Flask) -> None:
     app.config.setdefault("SWAGGER", {
         "uiversion": 3,
-        "title": "Medical Management System API",
+        "title": "Medical Management System API Dobryi Developer",
         "openapi": "3.0.3",
     })
 
     swagger_template = {
         "openapi": "3.0.3",
         "info": {
-            "title": "Medical Management System API",
+            "title": "Medical Management System API Dobryi Developer",
             "version": "1.0.0",
-            "description": "Complete REST API for medical management system with authentication",
+            "description": "Complete REST API for medical management system with authentication 1231231231231231231212312321",
             "contact": {"name": "Andrii Pavelchak", "email": "apavelchak@gmail.com"},
             "license": {"name": "MIT"},
         },
@@ -83,7 +83,7 @@ def create_app(app_config: Dict[str, Any], additional_config: Dict[str, Any]) ->
     app = Flask(__name__)
     app.config["SECRET_KEY"] = secrets.token_hex(16)
     app.config = {**app.config, **app_config}
-    
+
     CORS(app)
     _init_db(app)
     register_routes(app)
@@ -91,7 +91,7 @@ def create_app(app_config: Dict[str, Any], additional_config: Dict[str, Any]) ->
     _init_trigger(app)
     _init_procedures(app)
     _init_sample_data(app)
-    
+
     return app
 
 
@@ -106,7 +106,7 @@ def _init_swagger(app: Flask) -> None:
             'description': 'JWT Token. Format: Bearer <token>'
         }
     }
-    
+
     api = Api(
         app, 
         title='Medical Management System API',
@@ -117,7 +117,7 @@ def _init_swagger(app: Flask) -> None:
         authorizations=authorizations,
         security='Bearer'
     )
-    
+
     # Doctor models
     doctor_model = api.model('Doctor', {
         'doctor_id': fields.Integer(description='Doctor ID'),
@@ -127,7 +127,7 @@ def _init_swagger(app: Flask) -> None:
         'phone_number': fields.String(description='Phone number'),
         'email': fields.String(description='Email address')
     })
-    
+
     doctor_large_model = api.model('DoctorLarge', {
         'doctor_id': fields.Integer(description='Doctor ID'),
         'first_name': fields.String(description='First name'),
@@ -139,7 +139,7 @@ def _init_swagger(app: Flask) -> None:
         'phone_number': fields.String(description='Phone number'),
         'email': fields.String(description='Email address')
     })
-    
+
     # Patient models
     patient_model = api.model('Patient', {
         'patient_id': fields.Integer(description='Patient ID'),
@@ -150,26 +150,26 @@ def _init_swagger(app: Flask) -> None:
         'email': fields.String(description='Email address'),
         'address': fields.String(description='Address')
     })
-    
+
     # Specialty models
     specialty_model = api.model('Specialty', {
         'specialty_id': fields.Integer(description='Specialty ID'),
         'specialty_name': fields.String(required=True, description='Specialty name')
     })
-    
+
     # Illness models
     illness_model = api.model('Illness', {
         'illness_id': fields.Integer(description='Illness ID'),
         'illness_name': fields.String(required=True, description='Illness name'),
         'treatment_plan': fields.String(description='Treatment plan')
     })
-    
+
     # Symptom models
     symptom_model = api.model('Symptom', {
         'symptome_id': fields.Integer(description='Symptom ID'),
         'symptome_name': fields.String(required=True, description='Symptom name')
     })
-    
+
     # Appointment models
     appointment_model = api.model('Appointment', {
         'appointment_id': fields.Integer(description='Appointment ID'),
@@ -179,7 +179,7 @@ def _init_swagger(app: Flask) -> None:
         'appointment_time': fields.String(required=True, description='Appointment time'),
         'consultation_fee': fields.Float(description='Consultation fee')
     })
-    
+
     # Billing models
     billing_model = api.model('Billing', {
         'bill_id': fields.Integer(description='Bill ID'),
@@ -189,7 +189,7 @@ def _init_swagger(app: Flask) -> None:
         'payment_method': fields.String(description='Payment method'),
         'billing_date': fields.Date(description='Billing date')
     })
-    
+
     # Diagnosis models
     diagnosis_model = api.model('Diagnosis', {
         'diagnosis_id': fields.Integer(description='Diagnosis ID'),
@@ -198,7 +198,7 @@ def _init_swagger(app: Flask) -> None:
         'patient_id': fields.Integer(description='Patient ID'),
         'diagnosis_date': fields.Date(required=True, description='Diagnosis date')
     })
-    
+
     # Schedule models
     schedule_model = api.model('Schedule', {
         'schedule_id': fields.Integer(description='Schedule ID'),
@@ -207,7 +207,7 @@ def _init_swagger(app: Flask) -> None:
         'start_time': fields.String(description='Start time'),
         'end_time': fields.String(description='End time')
     })
-    
+
     # Appointment booking models
     appointment_booking_model = api.model('AppointmentBooking', {
         'booking_id': fields.Integer(description='Booking ID'),
@@ -215,7 +215,7 @@ def _init_swagger(app: Flask) -> None:
         'booking_date': fields.Date(required=True, description='Booking date'),
         'booking_time': fields.String(required=True, description='Booking time')
     })
-    
+
     # Recovery protocol models
     recovery_protocol_model = api.model('RecoveryProtocol', {
         'recovery_protocol_id': fields.Integer(description='Recovery Protocol ID'),
@@ -223,30 +223,30 @@ def _init_swagger(app: Flask) -> None:
         'patient_id': fields.Integer(description='Patient ID'),
         'recovery_plan': fields.String(description='Recovery plan')
     })
-    
+
     # Doctor-Symptom relation models
     doctor_symptom_model = api.model('DoctorSymptom', {
         'doctor_id': fields.Integer(description='Doctor ID'),
         'symptome_id': fields.Integer(description='Symptom ID')
     })
-    
+
     # Authentication models
     login_model = api.model('Login', {
         'username': fields.String(required=True, description='Username'),
         'password': fields.String(required=True, description='Password')
     })
-    
+
     register_model = api.model('Register', {
         'username': fields.String(required=True, description='Username'),
         'password': fields.String(required=True, description='Password'),
         'email': fields.String(required=True, description='Email')
     })
-    
+
     # Response models
     message_response_model = api.model('MessageResponse', {
         'message': fields.String(description='Response message')
     })
-    
+
     token_response_model = api.model('TokenResponse', {
         'token': fields.String(description='JWT Access Token'),
         'user': fields.Nested(api.model('UserInfo', {
@@ -256,7 +256,7 @@ def _init_swagger(app: Flask) -> None:
         })),
         'message': fields.String(description='Success message')
     })
-    
+
     health_model = api.model('HealthStatus', {
         'status': fields.String(description='System status'),
         'message': fields.String(description='Status message'),
@@ -264,14 +264,14 @@ def _init_swagger(app: Flask) -> None:
         'database': fields.String(description='Database status'),
         'timestamp': fields.String(description='Current timestamp')
     })
-    
+
     def token_required(f):
         @wraps(f)
         def decorated(*args, **kwargs):
             token = request.headers.get('Authorization')
             if not token:
                 api.abort(401, 'Token is missing!')
-            
+
             try:
                 if token.startswith('Bearer '):
                     token = token[7:]
@@ -279,10 +279,10 @@ def _init_swagger(app: Flask) -> None:
                 g.current_user = data['username']
             except:
                 api.abort(401, 'Invalid token!')
-            
+
             return f(*args, **kwargs)
         return decorated
-    
+
     # Mock users for authentication
     users_db = {
         'admin': {
@@ -298,7 +298,7 @@ def _init_swagger(app: Flask) -> None:
             'password': generate_password_hash('doctor123'),
         }
     }
-    
+
     # Create namespaces
     ns_auth = api.namespace('auth', description='Authentication and authorization')
     ns_doctors = api.namespace('doctors', description='Doctor management')
@@ -314,7 +314,7 @@ def _init_swagger(app: Flask) -> None:
     ns_recovery = api.namespace('recovery', description='Recovery protocol management')
     ns_relations = api.namespace('relations', description='Doctor-Symptom relations')
     ns_health = api.namespace('health', description='System monitoring')
-    
+
     # Authentication endpoints
     @ns_auth.route('/register')
     class Register(Resource):
@@ -324,22 +324,22 @@ def _init_swagger(app: Flask) -> None:
             """Register new user"""
             data = request.get_json()
             username = data.get('username')
-            
+
             if not username or not data.get('password') or not data.get('email'):
                 api.abort(400, 'Username, password and email are required')
-            
+
             if username in users_db:
                 api.abort(400, f'User {username} already exists')
-            
+
             users_db[username] = {
                 'id': len(users_db) + 1,
                 'username': username,
                 'email': data.get('email'),
                 'password': generate_password_hash(data.get('password')),
             }
-            
+
             return {'message': f'User {username} registered successfully!'}, 201
-    
+
     @ns_auth.route('/login')
     class Login(Resource):
         @api.expect(login_model)
@@ -349,16 +349,16 @@ def _init_swagger(app: Flask) -> None:
             data = request.get_json()
             username = data.get('username')
             password = data.get('password')
-            
+
             user = users_db.get(username)
             if not user or not check_password_hash(user['password'], password):
                 api.abort(401, 'Invalid credentials')
-            
+
             token = jwt.encode({
                 'username': username,
                 'exp': datetime.utcnow() + timedelta(hours=24)
             }, app.config['SECRET_KEY'], algorithm='HS256')
-            
+
             return {
                 'token': token,
                 'user': {
@@ -368,7 +368,7 @@ def _init_swagger(app: Flask) -> None:
                 },
                 'message': 'Login successful!'
             }
-    
+
     # Doctor endpoints
     @ns_doctors.route('/')
     class DoctorsList(Resource):
@@ -384,7 +384,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting doctors: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(doctor_model)
@@ -397,7 +397,7 @@ def _init_swagger(app: Flask) -> None:
             doctor = Doctors.create_from_dto(data)
             doctors_controller.create_doctor(doctor)
             return doctor.put_into_dto(), 201
-    
+
     @ns_doctors.route('/all')
     class DoctorsWithSpecialty(Resource):
         @api.marshal_list_with(doctor_large_model)
@@ -412,7 +412,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting doctors with specialty: {e}")
                 return []
-    
+
     @ns_doctors.route('/<int:doctor_id>')
     class Doctor(Resource):
         @api.marshal_with(doctor_model)
@@ -427,7 +427,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting doctor {doctor_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(doctor_model)
@@ -440,7 +440,7 @@ def _init_swagger(app: Flask) -> None:
             doctor = Doctors.create_from_dto(data)
             doctors_controller.update_doctor(doctor_id, doctor)
             return {'message': 'Doctor updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -449,7 +449,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import doctors_controller
             doctors_controller.delete_doctor(doctor_id)
             return {'message': 'Doctor deleted successfully'}
-    
+
     # Patient endpoints
     @ns_patients.route('/')
     class PatientsList(Resource):
@@ -465,7 +465,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting patients: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(patient_model)
@@ -478,7 +478,7 @@ def _init_swagger(app: Flask) -> None:
             patient = Patients.create_from_dto(data)
             patients_controller.create_patient(patient)
             return patient.put_into_dto(), 201
-    
+
     @ns_patients.route('/<int:patient_id>')
     class Patient(Resource):
         @api.marshal_with(patient_model)
@@ -493,7 +493,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting patient {patient_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(patient_model)
@@ -506,7 +506,7 @@ def _init_swagger(app: Flask) -> None:
             patient = Patients.create_from_dto(data)
             patients_controller.update_patient(patient_id, patient)
             return {'message': 'Patient updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -515,7 +515,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import patients_controller
             patients_controller.delete_patient(patient_id)
             return {'message': 'Patient deleted successfully'}
-    
+
     # Specialty endpoints
     @ns_specialties.route('/')
     class SpecialtiesList(Resource):
@@ -531,7 +531,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting specialties: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(specialty_model)
@@ -544,7 +544,7 @@ def _init_swagger(app: Flask) -> None:
             specialty = Specialties.create_from_dto(data)
             specialties_controller.create_specialty(specialty)
             return specialty.put_into_dto(), 201
-    
+
     @ns_specialties.route('/<int:specialty_id>')
     class Specialty(Resource):
         @api.marshal_with(specialty_model)
@@ -559,7 +559,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting specialty {specialty_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(specialty_model)
@@ -572,7 +572,7 @@ def _init_swagger(app: Flask) -> None:
             specialty = Specialties.create_from_dto(data)
             specialties_controller.update_specialty(specialty_id, specialty)
             return {'message': 'Specialty updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -581,7 +581,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import specialties_controller
             specialties_controller.delete_specialty(specialty_id)
             return {'message': 'Specialty deleted successfully'}
-    
+
     # Illness endpoints
     @ns_illnesses.route('/')
     class IllnessesList(Resource):
@@ -597,7 +597,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting illnesses: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(illness_model)
@@ -610,7 +610,7 @@ def _init_swagger(app: Flask) -> None:
             illness = Illnesses.create_from_dto(data)
             illnesses_controller.create_illness(illness)
             return illness.put_into_dto(), 201
-    
+
     @ns_illnesses.route('/<int:illness_id>')
     class Illness(Resource):
         @api.marshal_with(illness_model)
@@ -625,7 +625,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting illness {illness_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(illness_model)
@@ -638,7 +638,7 @@ def _init_swagger(app: Flask) -> None:
             illness = Illnesses.create_from_dto(data)
             illnesses_controller.update_illness(illness_id, illness)
             return {'message': 'Illness updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -647,7 +647,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import illnesses_controller
             illnesses_controller.delete_illness(illness_id)
             return {'message': 'Illness deleted successfully'}
-    
+
     # Symptom endpoints
     @ns_symptoms.route('/')
     class SymptomsList(Resource):
@@ -663,7 +663,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting symptoms: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(symptom_model)
@@ -676,7 +676,7 @@ def _init_swagger(app: Flask) -> None:
             symptom = Symptomes.create_from_dto(data)
             symptomes_controller.create_symptome(symptom)
             return symptom.put_into_dto(), 201
-    
+
     @ns_symptoms.route('/<int:symptom_id>')
     class Symptom(Resource):
         @api.marshal_with(symptom_model)
@@ -691,7 +691,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting symptom {symptom_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(symptom_model)
@@ -704,7 +704,7 @@ def _init_swagger(app: Flask) -> None:
             symptom = Symptomes.create_from_dto(data)
             symptomes_controller.update_symptome(symptom_id, symptom)
             return {'message': 'Symptom updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -713,7 +713,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import symptomes_controller
             symptomes_controller.delete_symptome(symptom_id)
             return {'message': 'Symptom deleted successfully'}
-    
+
     # Appointment endpoints
     @ns_appointments.route('/')
     class AppointmentsList(Resource):
@@ -729,7 +729,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting appointments: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(appointment_model)
@@ -742,7 +742,7 @@ def _init_swagger(app: Flask) -> None:
             appointment = Appointments.create_from_dto(data)
             appointments_controller.create_appointment(appointment)
             return appointment.put_into_dto(), 201
-    
+
     @ns_appointments.route('/<int:appointment_id>')
     class Appointment(Resource):
         @api.marshal_with(appointment_model)
@@ -757,7 +757,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting appointment {appointment_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(appointment_model)
@@ -770,7 +770,7 @@ def _init_swagger(app: Flask) -> None:
             appointment = Appointments.create_from_dto(data)
             appointments_controller.update_appointment(appointment_id, appointment)
             return {'message': 'Appointment updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -779,7 +779,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import appointments_controller
             appointments_controller.delete_appointment(appointment_id)
             return {'message': 'Appointment deleted successfully'}
-    
+
     # Billing endpoints
     @ns_billing.route('/')
     class BillingList(Resource):
@@ -795,7 +795,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting billing records: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(billing_model)
@@ -808,7 +808,7 @@ def _init_swagger(app: Flask) -> None:
             bill = Billing.create_from_dto(data)
             billing_controller.create_bill(bill)
             return bill.put_into_dto(), 201
-    
+
     @ns_billing.route('/<int:bill_id>')
     class Billing(Resource):
         @api.marshal_with(billing_model)
@@ -823,7 +823,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting billing record {bill_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(billing_model)
@@ -836,7 +836,7 @@ def _init_swagger(app: Flask) -> None:
             bill = Billing.create_from_dto(data)
             billing_controller.update_bill(bill_id, bill)
             return {'message': 'Billing record updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -845,7 +845,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import billing_controller
             billing_controller.delete_bill(bill_id)
             return {'message': 'Billing record deleted successfully'}
-    
+
     # Diagnosis endpoints
     @ns_diagnoses.route('/')
     class DiagnosesList(Resource):
@@ -861,7 +861,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting diagnoses: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(diagnosis_model)
@@ -874,7 +874,7 @@ def _init_swagger(app: Flask) -> None:
             diagnosis = Diagnoses.create_from_dto(data)
             diagnoses_controller.create_diagnosis(diagnosis)
             return diagnosis.put_into_dto(), 201
-    
+
     @ns_diagnoses.route('/<int:diagnosis_id>')
     class Diagnosis(Resource):
         @api.marshal_with(diagnosis_model)
@@ -889,7 +889,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting diagnosis {diagnosis_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(diagnosis_model)
@@ -902,7 +902,7 @@ def _init_swagger(app: Flask) -> None:
             diagnosis = Diagnoses.create_from_dto(data)
             diagnoses_controller.update_diagnosis(diagnosis_id, diagnosis)
             return {'message': 'Diagnosis updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -911,7 +911,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import diagnoses_controller
             diagnoses_controller.delete_diagnosis(diagnosis_id)
             return {'message': 'Diagnosis deleted successfully'}
-    
+
     # Schedule endpoints
     @ns_schedules.route('/')
     class SchedulesList(Resource):
@@ -927,7 +927,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting schedules: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(schedule_model)
@@ -940,7 +940,7 @@ def _init_swagger(app: Flask) -> None:
             schedule = Schedules.create_from_dto(data)
             schedules_controller.create_schedule(schedule)
             return schedule.put_into_dto(), 201
-    
+
     @ns_schedules.route('/<int:schedule_id>')
     class Schedule(Resource):
         @api.marshal_with(schedule_model)
@@ -955,7 +955,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting schedule {schedule_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(schedule_model)
@@ -968,7 +968,7 @@ def _init_swagger(app: Flask) -> None:
             schedule = Schedules.create_from_dto(data)
             schedules_controller.update_schedule(schedule_id, schedule)
             return {'message': 'Schedule updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -977,7 +977,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import schedules_controller
             schedules_controller.delete_schedule(schedule_id)
             return {'message': 'Schedule deleted successfully'}
-    
+
     # Appointment booking endpoints
     @ns_bookings.route('/')
     class AppointmentBookingsList(Resource):
@@ -993,7 +993,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting appointment bookings: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(appointment_booking_model)
@@ -1006,7 +1006,7 @@ def _init_swagger(app: Flask) -> None:
             booking = AppointmentBookings.create_from_dto(data)
             appointment_bookings_controller.create_appointment_booking(booking)
             return booking.put_into_dto(), 201
-    
+
     @ns_bookings.route('/<int:booking_id>')
     class AppointmentBooking(Resource):
         @api.marshal_with(appointment_booking_model)
@@ -1021,7 +1021,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting appointment booking {booking_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(appointment_booking_model)
@@ -1034,7 +1034,7 @@ def _init_swagger(app: Flask) -> None:
             booking = AppointmentBookings.create_from_dto(data)
             appointment_bookings_controller.update_appointment_booking(booking_id, booking)
             return {'message': 'Appointment booking updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -1043,7 +1043,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import appointment_bookings_controller
             appointment_bookings_controller.delete_appointment_booking(booking_id)
             return {'message': 'Appointment booking deleted successfully'}
-    
+
     # Recovery protocol endpoints
     @ns_recovery.route('/')
     class RecoveryProtocolsList(Resource):
@@ -1059,7 +1059,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting recovery protocols: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(recovery_protocol_model)
@@ -1072,7 +1072,7 @@ def _init_swagger(app: Flask) -> None:
             protocol = RecoveryProtocol.create_from_dto(data)
             recovery_protocol_controller.create_recovery_protocol(protocol)
             return protocol.put_into_dto(), 201
-    
+
     @ns_recovery.route('/<int:protocol_id>')
     class RecoveryProtocol(Resource):
         @api.marshal_with(recovery_protocol_model)
@@ -1087,7 +1087,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting recovery protocol {protocol_id}: {e}")
                 api.abort(500, 'Internal server error')
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(recovery_protocol_model)
@@ -1100,7 +1100,7 @@ def _init_swagger(app: Flask) -> None:
             protocol = RecoveryProtocol.create_from_dto(data)
             recovery_protocol_controller.update_recovery_protocol(protocol_id, protocol)
             return {'message': 'Recovery protocol updated successfully'}
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.marshal_with(message_response_model)
@@ -1109,7 +1109,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import recovery_protocol_controller
             recovery_protocol_controller.delete_recovery_protocol(protocol_id)
             return {'message': 'Recovery protocol deleted successfully'}
-    
+
     # Doctor-Symptom relation endpoints
     @ns_relations.route('/')
     class DoctorSymptomRelations(Resource):
@@ -1125,7 +1125,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting doctor-symptom relations: {e}")
                 return []
-        
+
         @api.doc(security='Bearer')
         @token_required
         @api.expect(doctor_symptom_model)
@@ -1138,7 +1138,7 @@ def _init_swagger(app: Flask) -> None:
             relation = DoctorSymptomes.create_from_dto(data)
             doctorsymptomes_controller.create_relation(relation)
             return relation.put_into_dto(), 201
-    
+
     @ns_relations.route('/by_doctor/<int:doctor_id>')
     class SymptomsByDoctor(Resource):
         @api.marshal_list_with(symptom_model)
@@ -1153,7 +1153,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting symptoms for doctor {doctor_id}: {e}")
                 api.abort(500, 'Internal server error')
-    
+
     @ns_relations.route('/by_symptom/<int:symptom_id>')
     class DoctorsBySymptom(Resource):
         @api.marshal_list_with(doctor_model)
@@ -1168,7 +1168,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting doctors for symptom {symptom_id}: {e}")
                 api.abort(500, 'Internal server error')
-    
+
     @ns_relations.route('/<int:doctor_id>/<int:symptom_id>')
     class DoctorSymptomRelation(Resource):
         @api.doc(security='Bearer')
@@ -1179,7 +1179,7 @@ def _init_swagger(app: Flask) -> None:
             from my_project.auth.controller import doctorsymptomes_controller
             doctorsymptomes_controller.delete_relation(doctor_id, symptom_id)
             return {'message': 'Relation deleted successfully'}
-    
+
     @ns_relations.route('/all')
     class AllRelationsDetails(Resource):
         def get(self):
@@ -1193,7 +1193,7 @@ def _init_swagger(app: Flask) -> None:
             except Exception as e:
                 print(f"Error getting relations details: {e}")
                 return []
-    
+
     # Health check endpoint
     @ns_health.route('/status')
     class HealthCheck(Resource):
@@ -1207,7 +1207,7 @@ def _init_swagger(app: Flask) -> None:
                 'database': 'connected',
                 'timestamp': datetime.utcnow().isoformat()
             }
-    
+
     # Root endpoint
     @app.route("/")
     def hello_world():
@@ -1299,69 +1299,18 @@ def _init_swagger(app: Flask) -> None:
 
 def _init_trigger(app: Flask) -> None:
     with app.app_context():
+        try:
+            db.session.execute('DROP TRIGGER IF EXISTS validate_specialty_name;')
             db.session.execute('DROP TRIGGER IF EXISTS trigger_specialty_id;')
-            db.session.execute('''
-            CREATE TRIGGER trigger_specialty_id
-            BEFORE INSERT ON doctors
-            FOR EACH ROW
-            BEGIN
-                IF NEW.doctor_id < 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Primary key (doctor_id) cannot be negative';
-                END IF;
-
-                IF NOT EXISTS (SELECT 1 FROM specialties WHERE specialties.specialty_id = NEW.specialty_id) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Specialty ID does not exist in the specialties table';
-                END IF;
-            END;
-            '''')
-
             db.session.execute('DROP TRIGGER IF EXISTS prevent_symptomes_deletion;')
             db.session.execute('DROP TRIGGER IF EXISTS prevent_specialty_name_ending_with_00;')
-
-            db.session.execute('DROP TRIGGER IF EXISTS validate_specialty_name;')
-            db.session.execute('''
-
-                                            CREATE TRIGGER validate_specialty_name
-                                            BEFORE INSERT ON specialties
-                                            FOR EACH ROW
-                                            BEGIN
-                                                IF NEW.specialty_name NOT IN ('Petro', 'Olha', 'Taras') THEN
-                                                    SIGNAL SQLSTATE '45000'
-                                                    SET MESSAGE_TEXT = 'Specialty name must be one of: Svitlana, Petro, Olha, Taras';
-                                                END IF;
-                                             END;
-                                               ''')
-
-
             db.session.commit()
+        except Exception as e:
+            print(f"Error dropping triggers: {e}")
+            db.session.rollback()
 
 def _init_procedures(app: Flask) -> None:
-    with app.app_context():
-        db.session.execute('''
-            DROP PROCEDURE IF EXISTS AddDoctorSymptome;
-
-            CREATE PROCEDURE AddDoctorSymptome(
-                IN p_doctor_id INT,
-                IN p_symptome_id INT
-            )
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM doctors WHERE doctor_id = p_doctor_id) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'doctor_id does not exist in doctors table';
-                END IF;
-            
-                IF NOT EXISTS (SELECT 1 FROM symptomes WHERE symptome_id = p_symptome_id) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'symptome_id does not exist in symptomes table';
-                END IF;
-            
-                INSERT IGNORE INTO doctor_symptomes (doctor_id, symptome_id)
-                VALUES (p_doctor_id, p_symptome_id);
-            END;
-          ''')
-        db.session.commit()
+    pass
 
 def _init_sample_data(app: Flask) -> None:
     with app.app_context():
@@ -1377,7 +1326,7 @@ def _init_sample_data(app: Flask) -> None:
         from my_project.auth.domain.orders.appointmentbookings import AppointmentBookings
         from my_project.auth.domain.orders.recoveryprotocol import RecoveryProtocol
         from my_project.auth.domain.orders.doctorsymptomes import DoctorSymptomes
-        
+
         if db.session.query(Specialties).count() == 0:
             specialties_data = [
                 {'specialty_name': 'Cardiology'},
@@ -1389,7 +1338,7 @@ def _init_sample_data(app: Flask) -> None:
             for spec_data in specialties_data:
                 specialty = Specialties(**spec_data)
                 db.session.add(specialty)
-        
+
         if db.session.query(Doctors).count() == 0:
             doctors_data = [
                 {'first_name': 'John', 'last_name': 'Smith', 'specialty_id': 1, 'phone_number': '+1234567890', 'email': 'john.smith@hospital.com'},
@@ -1401,7 +1350,7 @@ def _init_sample_data(app: Flask) -> None:
             for doc_data in doctors_data:
                 doctor = Doctors(**doc_data)
                 db.session.add(doctor)
-        
+
         if db.session.query(Patients).count() == 0:
             patients_data = [
                 {'first_name': 'Alice', 'last_name': 'Johnson', 'date_of_birth': '1990-05-15', 'phone_number': '+1987654321', 'email': 'alice.johnson@email.com', 'address': '123 Main St'},
@@ -1413,7 +1362,7 @@ def _init_sample_data(app: Flask) -> None:
             for pat_data in patients_data:
                 patient = Patients(**pat_data)
                 db.session.add(patient)
-        
+
         if db.session.query(Illnesses).count() == 0:
             illnesses_data = [
                 {'illness_name': 'Hypertension', 'treatment_plan': 'Medication and lifestyle changes'},
@@ -1425,7 +1374,7 @@ def _init_sample_data(app: Flask) -> None:
             for ill_data in illnesses_data:
                 illness = Illnesses(**ill_data)
                 db.session.add(illness)
-        
+
         if db.session.query(Symptomes).count() == 0:
             symptoms_data = [
                 {'symptome_name': 'Headache'},
@@ -1440,7 +1389,7 @@ def _init_sample_data(app: Flask) -> None:
             for symp_data in symptoms_data:
                 symptom = Symptomes(**symp_data)
                 db.session.add(symptom)
-        
+
         if db.session.query(Appointments).count() == 0:
             appointments_data = [
                 {'doctor_id': 1, 'patient_id': 1, 'appointment_date': '2024-01-15', 'appointment_time': '09:00:00', 'consultation_fee': 150.0},
@@ -1452,7 +1401,7 @@ def _init_sample_data(app: Flask) -> None:
             for appt_data in appointments_data:
                 appointment = Appointments(**appt_data)
                 db.session.add(appointment)
-        
+
         if db.session.query(Billing).count() == 0:
             billing_data = [
                 {'appointment_id': 1, 'total_amount': 150.0, 'payment_status': 'Paid', 'payment_method': 'Credit Card', 'billing_date': '2024-01-15'},
@@ -1464,7 +1413,7 @@ def _init_sample_data(app: Flask) -> None:
             for bill_data in billing_data:
                 billing = Billing(**bill_data)
                 db.session.add(billing)
-        
+
         if db.session.query(Diagnoses).count() == 0:
             diagnoses_data = [
                 {'illness_id': 1, 'doctor_id': 1, 'patient_id': 1, 'diagnosis_date': '2024-01-15'},
@@ -1476,7 +1425,7 @@ def _init_sample_data(app: Flask) -> None:
             for diag_data in diagnoses_data:
                 diagnosis = Diagnoses(**diag_data)
                 db.session.add(diagnosis)
-        
+
         if db.session.query(Schedules).count() == 0:
             schedules_data = [
                 {'doctor_id': 1, 'day_of_week': 'Monday', 'start_time': '09:00:00', 'end_time': '17:00:00'},
@@ -1489,7 +1438,7 @@ def _init_sample_data(app: Flask) -> None:
             for sched_data in schedules_data:
                 schedule = Schedules(**sched_data)
                 db.session.add(schedule)
-        
+
         if db.session.query(AppointmentBookings).count() == 0:
             bookings_data = [
                 {'appointment_id': 1, 'booking_date': '2024-01-10', 'booking_time': '08:30:00'},
@@ -1501,7 +1450,7 @@ def _init_sample_data(app: Flask) -> None:
             for book_data in bookings_data:
                 booking = AppointmentBookings(**book_data)
                 db.session.add(booking)
-        
+
         if db.session.query(RecoveryProtocol).count() == 0:
             recovery_data = [
                 {'doctor_id': 1, 'patient_id': 1, 'recovery_plan': 'Regular exercise and medication adherence'},
@@ -1513,7 +1462,7 @@ def _init_sample_data(app: Flask) -> None:
             for rec_data in recovery_data:
                 recovery = RecoveryProtocol(**rec_data)
                 db.session.add(recovery)
-        
+
         if db.session.query(DoctorSymptomes).count() == 0:
             relations_data = [
                 {'doctor_id': 1, 'symptome_id': 4},
@@ -1529,7 +1478,7 @@ def _init_sample_data(app: Flask) -> None:
             for rel_data in relations_data:
                 relation = DoctorSymptomes(**rel_data)
                 db.session.add(relation)
-        
+
         db.session.commit()
 
 def _init_db(app: Flask) -> None:
