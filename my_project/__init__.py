@@ -1315,7 +1315,7 @@ def _init_trigger(app: Flask) -> None:
                     SET MESSAGE_TEXT = 'Specialty ID does not exist in the specialties table';
                 END IF;
             END;
-            '''')
+            ''')
 
             db.session.execute('DROP TRIGGER IF EXISTS prevent_symptomes_deletion;')
             db.session.execute('DROP TRIGGER IF EXISTS prevent_specialty_name_ending_with_00;')
