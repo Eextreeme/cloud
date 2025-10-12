@@ -42,14 +42,14 @@ todos = {}
 def init_autodoc_swagger(app: Flask) -> None:
     app.config.setdefault("SWAGGER", {
         "uiversion": 3,
-        "title": "Medical Management System API",
+        "title": "Medical Management System API Dobryi Developer",
         "openapi": "3.0.3",
     })
 
     swagger_template = {
         "openapi": "3.0.3",
         "info": {
-            "title": "Medical Management System API",
+            "title": "Medical Management System API Dobryi Developer",
             "version": "1.0.0",
             "description": "Complete REST API for medical management system with authentication",
             "contact": {"name": "Andrii Pavelchak", "email": "apavelchak@gmail.com"},
