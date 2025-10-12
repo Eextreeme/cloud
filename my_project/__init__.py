@@ -1298,7 +1298,16 @@ def _init_swagger(app: Flask) -> None:
         })
 
 def _init_trigger(app: Flask) -> None:
-    pass
+    with app.app_context():
+        try:
+            db.session.execute('DROP TRIGGER IF EXISTS validate_specialty_name;')
+            db.session.execute('DROP TRIGGER IF EXISTS trigger_specialty_id;')
+            db.session.execute('DROP TRIGGER IF EXISTS prevent_symptomes_deletion;')
+            db.session.execute('DROP TRIGGER IF EXISTS prevent_specialty_name_ending_with_00;')
+            db.session.commit()
+        except Exception as e:
+            print(f"Error dropping triggers: {e}")
+            db.session.rollback()
 
 def _init_procedures(app: Flask) -> None:
     pass
