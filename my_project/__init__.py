@@ -90,9 +90,122 @@ def create_app(app_config: Dict[str, Any], additional_config: Dict[str, Any]) ->
     _init_swagger(app)
     _init_trigger(app)
     _init_procedures(app)
-    _init_sample_data(app)
+    #_init_doctor_symptome(app,2,3) #2b
+    #_init_noname_insert(app)  #2c
+    #create_dynamic_tables_procedure(app)  #2e iii
+    #Billing_AVG(app)
     
     return app
+#2b
+def _init_doctor_symptome(app: Flask, current_doctor_id: int,current_symptome_id: int) -> None:
+    with app.app_context():
+        db.session.execute("CALL AddDoctorSymptome(:current_doctor_id, :current_symptome_id)", {
+            'current_doctor_id': current_doctor_id,
+            'current_symptome_id': current_symptome_id
+        })
+        db.session.commit()
+
+#2c
+def _init_noname_insert(app: Flask) -> None:
+    with app.app_context():
+        db.session.execute("""
+
+DROP PROCEDURE IF EXISTS InsertNonameIllnesses;
+        CREATE PROCEDURE InsertNonameIllnesses()
+        BEGIN
+            DECLARE i INT DEFAULT 0;
+            DECLARE start_number INT DEFAULT 1000;
+
+            WHILE i < 10 DO
+                INSERT INTO illneses (illness_name, treatment_plan)
+                VALUES (CONCAT('Noname', start_number + i), 'Treatment plan for Noname');
+
+                SET i = i + 1;
+            END WHILE;
+        END;
+        """)
+
+        db.session.commit()
+
+def Billing_AVG(app: Flask) -> None:
+    with app.app_context():
+        db.session.execute("""
+
+    DROP FUNCTION IF EXISTS CalculateAverageTotalAmount;
+
+    CREATE FUNCTION CalculateAverageTotalAmount()
+    RETURNS DECIMAL(10, 2)
+    DETERMINISTIC
+    BEGIN
+        DECLARE result DECIMAL(10, 2);
+    
+        SELECT AVG(total_amount) INTO result FROM Billing;
+    
+        RETURN result;
+    END
+        """)
+
+        db.session.commit()
+
+def create_dynamic_tables_procedure(app: Flask) -> None:
+
+    with app.app_context():
+        db.session.execute("""
+        DROP PROCEDURE IF EXISTS CreateTablesWithRandomColumns;
+
+        CREATE PROCEDURE CreateTablesWithRandomColumns()
+        BEGIN
+            DECLARE table_name VARCHAR(128);
+            DECLARE done INT DEFAULT 0;
+
+            DECLARE table_cursor CURSOR FOR SELECT DISTINCT id FROM award;
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+            OPEN table_cursor;
+
+            read_loop: LOOP
+                FETCH table_cursor INTO table_name;
+
+                IF done THEN
+                    LEAVE read_loop;
+                END IF;
+
+                SET @dynamic_table_name = CONCAT(table_name, '_', DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'));
+
+                SET @num_columns = FLOOR(1 + RAND() * 9);
+
+                SET @create_table_sql = CONCAT('CREATE TABLE ', @dynamic_table_name, ' (');
+
+                SET @col_index = 1;
+                WHILE @col_index <= @num_columns DO
+                    SET @col_name = CONCAT('Column_', @col_index);
+                    SET @col_type = CASE FLOOR(RAND() * 4)
+                        WHEN 0 THEN 'INT'
+                        WHEN 1 THEN 'VARCHAR(50)'
+                        WHEN 2 THEN 'FLOAT'
+                        WHEN 3 THEN 'DATETIME'
+                    END;
+
+                    SET @create_table_sql = CONCAT(@create_table_sql, @col_name, ' ', @col_type);
+
+                    IF @col_index < @num_columns THEN
+                        SET @create_table_sql = CONCAT(@create_table_sql, ', ');
+                    END IF;
+
+                    SET @col_index = @col_index + 1;
+                END WHILE;
+
+                SET @create_table_sql = CONCAT(@create_table_sql, ');');
+
+                PREPARE stmt FROM @create_table_sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END LOOP;
+
+            CLOSE table_cursor;
+        END;
+        """)
+        db.session.commit()
 
 
 
@@ -376,14 +489,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all doctors"""
             from my_project.auth.controller import doctors_controller
-            try:
-                doctors = doctors_controller.find_all()
-                if doctors is None:
-                    return []
-                return [doctor.put_into_dto() for doctor in doctors]
-            except Exception as e:
-                print(f"Error getting doctors: {e}")
-                return []
+            doctors = doctors_controller.find_all()
+            return [doctor.put_into_dto() for doctor in doctors]
         
         @api.doc(security='Bearer')
         @token_required
@@ -404,14 +511,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all doctors with specialty information"""
             from my_project.auth.controller import doctors_controller
-            try:
-                doctors = doctors_controller.find_with_specialty()
-                if doctors is None:
-                    return []
-                return [doctor.put_into_large_dto() for doctor in doctors]
-            except Exception as e:
-                print(f"Error getting doctors with specialty: {e}")
-                return []
+            doctors = doctors_controller.find_with_specialty()
+            return [doctor.put_into_large_dto() for doctor in doctors]
     
     @ns_doctors.route('/<int:doctor_id>')
     class Doctor(Resource):
@@ -419,14 +520,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, doctor_id):
             """Get doctor by ID"""
             from my_project.auth.controller import doctors_controller
-            try:
-                doctor = doctors_controller.find_by_id(doctor_id)
-                if not doctor:
-                    api.abort(404, 'Doctor not found')
-                return doctor.put_into_dto()
-            except Exception as e:
-                print(f"Error getting doctor {doctor_id}: {e}")
-                api.abort(500, 'Internal server error')
+            doctor = doctors_controller.find_by_id(doctor_id)
+            if not doctor:
+                api.abort(404, 'Doctor not found')
+            return doctor.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -457,14 +554,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all patients"""
             from my_project.auth.controller import patients_controller
-            try:
-                patients = patients_controller.find_all()
-                if patients is None:
-                    return []
-                return [patient.put_into_dto() for patient in patients]
-            except Exception as e:
-                print(f"Error getting patients: {e}")
-                return []
+            patients = patients_controller.find_all()
+            return [patient.put_into_dto() for patient in patients]
         
         @api.doc(security='Bearer')
         @token_required
@@ -485,14 +576,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, patient_id):
             """Get patient by ID"""
             from my_project.auth.controller import patients_controller
-            try:
-                patient = patients_controller.find_by_id(patient_id)
-                if not patient:
-                    api.abort(404, 'Patient not found')
-                return patient.put_into_dto()
-            except Exception as e:
-                print(f"Error getting patient {patient_id}: {e}")
-                api.abort(500, 'Internal server error')
+            patient = patients_controller.find_by_id(patient_id)
+            if not patient:
+                api.abort(404, 'Patient not found')
+            return patient.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -523,14 +610,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all specialties"""
             from my_project.auth.controller import specialties_controller
-            try:
-                specialties = specialties_controller.find_all()
-                if specialties is None:
-                    return []
-                return [specialty.put_into_dto() for specialty in specialties]
-            except Exception as e:
-                print(f"Error getting specialties: {e}")
-                return []
+            specialties = specialties_controller.find_all()
+            return [specialty.put_into_dto() for specialty in specialties]
         
         @api.doc(security='Bearer')
         @token_required
@@ -551,14 +632,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, specialty_id):
             """Get specialty by ID"""
             from my_project.auth.controller import specialties_controller
-            try:
-                specialty = specialties_controller.find_by_id(specialty_id)
-                if not specialty:
-                    api.abort(404, 'Specialty not found')
-                return specialty.put_into_dto()
-            except Exception as e:
-                print(f"Error getting specialty {specialty_id}: {e}")
-                api.abort(500, 'Internal server error')
+            specialty = specialties_controller.find_by_id(specialty_id)
+            if not specialty:
+                api.abort(404, 'Specialty not found')
+            return specialty.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -589,14 +666,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all illnesses"""
             from my_project.auth.controller import illnesses_controller
-            try:
-                illnesses = illnesses_controller.find_all()
-                if illnesses is None:
-                    return []
-                return [illness.put_into_dto() for illness in illnesses]
-            except Exception as e:
-                print(f"Error getting illnesses: {e}")
-                return []
+            illnesses = illnesses_controller.find_all()
+            return [illness.put_into_dto() for illness in illnesses]
         
         @api.doc(security='Bearer')
         @token_required
@@ -617,14 +688,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, illness_id):
             """Get illness by ID"""
             from my_project.auth.controller import illnesses_controller
-            try:
-                illness = illnesses_controller.find_by_id(illness_id)
-                if not illness:
-                    api.abort(404, 'Illness not found')
-                return illness.put_into_dto()
-            except Exception as e:
-                print(f"Error getting illness {illness_id}: {e}")
-                api.abort(500, 'Internal server error')
+            illness = illnesses_controller.find_by_id(illness_id)
+            if not illness:
+                api.abort(404, 'Illness not found')
+            return illness.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -655,14 +722,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all symptoms"""
             from my_project.auth.controller import symptomes_controller
-            try:
-                symptoms = symptomes_controller.find_all()
-                if symptoms is None:
-                    return []
-                return [symptom.put_into_dto() for symptom in symptoms]
-            except Exception as e:
-                print(f"Error getting symptoms: {e}")
-                return []
+            symptoms = symptomes_controller.find_all()
+            return [symptom.put_into_dto() for symptom in symptoms]
         
         @api.doc(security='Bearer')
         @token_required
@@ -683,14 +744,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, symptom_id):
             """Get symptom by ID"""
             from my_project.auth.controller import symptomes_controller
-            try:
-                symptom = symptomes_controller.find_by_id(symptom_id)
-                if not symptom:
-                    api.abort(404, 'Symptom not found')
-                return symptom.put_into_dto()
-            except Exception as e:
-                print(f"Error getting symptom {symptom_id}: {e}")
-                api.abort(500, 'Internal server error')
+            symptom = symptomes_controller.find_by_id(symptom_id)
+            if not symptom:
+                api.abort(404, 'Symptom not found')
+            return symptom.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -721,14 +778,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all appointments"""
             from my_project.auth.controller import appointments_controller
-            try:
-                appointments = appointments_controller.find_all()
-                if appointments is None:
-                    return []
-                return [appointment.put_into_dto() for appointment in appointments]
-            except Exception as e:
-                print(f"Error getting appointments: {e}")
-                return []
+            appointments = appointments_controller.find_all()
+            return [appointment.put_into_dto() for appointment in appointments]
         
         @api.doc(security='Bearer')
         @token_required
@@ -749,14 +800,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, appointment_id):
             """Get appointment by ID"""
             from my_project.auth.controller import appointments_controller
-            try:
-                appointment = appointments_controller.find_by_id(appointment_id)
-                if not appointment:
-                    api.abort(404, 'Appointment not found')
-                return appointment.put_into_dto()
-            except Exception as e:
-                print(f"Error getting appointment {appointment_id}: {e}")
-                api.abort(500, 'Internal server error')
+            appointment = appointments_controller.find_by_id(appointment_id)
+            if not appointment:
+                api.abort(404, 'Appointment not found')
+            return appointment.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -787,14 +834,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all billing records"""
             from my_project.auth.controller import billing_controller
-            try:
-                bills = billing_controller.find_all()
-                if bills is None:
-                    return []
-                return [bill.put_into_dto() for bill in bills]
-            except Exception as e:
-                print(f"Error getting billing records: {e}")
-                return []
+            bills = billing_controller.find_all()
+            return [bill.put_into_dto() for bill in bills]
         
         @api.doc(security='Bearer')
         @token_required
@@ -815,14 +856,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, bill_id):
             """Get billing record by ID"""
             from my_project.auth.controller import billing_controller
-            try:
-                bill = billing_controller.find_by_id(bill_id)
-                if not bill:
-                    api.abort(404, 'Billing record not found')
-                return bill.put_into_dto()
-            except Exception as e:
-                print(f"Error getting billing record {bill_id}: {e}")
-                api.abort(500, 'Internal server error')
+            bill = billing_controller.find_by_id(bill_id)
+            if not bill:
+                api.abort(404, 'Billing record not found')
+            return bill.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -853,14 +890,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all diagnoses"""
             from my_project.auth.controller import diagnoses_controller
-            try:
-                diagnoses = diagnoses_controller.find_all()
-                if diagnoses is None:
-                    return []
-                return [diagnosis.put_into_dto() for diagnosis in diagnoses]
-            except Exception as e:
-                print(f"Error getting diagnoses: {e}")
-                return []
+            diagnoses = diagnoses_controller.find_all()
+            return [diagnosis.put_into_dto() for diagnosis in diagnoses]
         
         @api.doc(security='Bearer')
         @token_required
@@ -881,14 +912,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, diagnosis_id):
             """Get diagnosis by ID"""
             from my_project.auth.controller import diagnoses_controller
-            try:
-                diagnosis = diagnoses_controller.find_by_id(diagnosis_id)
-                if not diagnosis:
-                    api.abort(404, 'Diagnosis not found')
-                return diagnosis.put_into_dto()
-            except Exception as e:
-                print(f"Error getting diagnosis {diagnosis_id}: {e}")
-                api.abort(500, 'Internal server error')
+            diagnosis = diagnoses_controller.find_by_id(diagnosis_id)
+            if not diagnosis:
+                api.abort(404, 'Diagnosis not found')
+            return diagnosis.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -919,14 +946,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all schedules"""
             from my_project.auth.controller import schedules_controller
-            try:
-                schedules = schedules_controller.find_all()
-                if schedules is None:
-                    return []
-                return [schedule.put_into_dto() for schedule in schedules]
-            except Exception as e:
-                print(f"Error getting schedules: {e}")
-                return []
+            schedules = schedules_controller.find_all()
+            return [schedule.put_into_dto() for schedule in schedules]
         
         @api.doc(security='Bearer')
         @token_required
@@ -947,14 +968,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, schedule_id):
             """Get schedule by ID"""
             from my_project.auth.controller import schedules_controller
-            try:
-                schedule = schedules_controller.find_by_id(schedule_id)
-                if not schedule:
-                    api.abort(404, 'Schedule not found')
-                return schedule.put_into_dto()
-            except Exception as e:
-                print(f"Error getting schedule {schedule_id}: {e}")
-                api.abort(500, 'Internal server error')
+            schedule = schedules_controller.find_by_id(schedule_id)
+            if not schedule:
+                api.abort(404, 'Schedule not found')
+            return schedule.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -985,14 +1002,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all appointment bookings"""
             from my_project.auth.controller import appointment_bookings_controller
-            try:
-                bookings = appointment_bookings_controller.find_all()
-                if bookings is None:
-                    return []
-                return [booking.put_into_dto() for booking in bookings]
-            except Exception as e:
-                print(f"Error getting appointment bookings: {e}")
-                return []
+            bookings = appointment_bookings_controller.find_all()
+            return [booking.put_into_dto() for booking in bookings]
         
         @api.doc(security='Bearer')
         @token_required
@@ -1013,14 +1024,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, booking_id):
             """Get appointment booking by ID"""
             from my_project.auth.controller import appointment_bookings_controller
-            try:
-                booking = appointment_bookings_controller.find_by_id(booking_id)
-                if not booking:
-                    api.abort(404, 'Appointment booking not found')
-                return booking.put_into_dto()
-            except Exception as e:
-                print(f"Error getting appointment booking {booking_id}: {e}")
-                api.abort(500, 'Internal server error')
+            booking = appointment_bookings_controller.find_by_id(booking_id)
+            if not booking:
+                api.abort(404, 'Appointment booking not found')
+            return booking.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -1051,14 +1058,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all recovery protocols"""
             from my_project.auth.controller import recovery_protocol_controller
-            try:
-                protocols = recovery_protocol_controller.find_all()
-                if protocols is None:
-                    return []
-                return [protocol.put_into_dto() for protocol in protocols]
-            except Exception as e:
-                print(f"Error getting recovery protocols: {e}")
-                return []
+            protocols = recovery_protocol_controller.find_all()
+            return [protocol.put_into_dto() for protocol in protocols]
         
         @api.doc(security='Bearer')
         @token_required
@@ -1079,14 +1080,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, protocol_id):
             """Get recovery protocol by ID"""
             from my_project.auth.controller import recovery_protocol_controller
-            try:
-                protocol = recovery_protocol_controller.find_by_id(protocol_id)
-                if not protocol:
-                    api.abort(404, 'Recovery protocol not found')
-                return protocol.put_into_dto()
-            except Exception as e:
-                print(f"Error getting recovery protocol {protocol_id}: {e}")
-                api.abort(500, 'Internal server error')
+            protocol = recovery_protocol_controller.find_by_id(protocol_id)
+            if not protocol:
+                api.abort(404, 'Recovery protocol not found')
+            return protocol.put_into_dto()
         
         @api.doc(security='Bearer')
         @token_required
@@ -1117,14 +1114,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all doctor-symptom relations"""
             from my_project.auth.controller import doctorsymptomes_controller
-            try:
-                relations = doctorsymptomes_controller.find_all_relations()
-                if relations is None:
-                    return []
-                return [relation.put_into_dto() for relation in relations]
-            except Exception as e:
-                print(f"Error getting doctor-symptom relations: {e}")
-                return []
+            relations = doctorsymptomes_controller.find_all_relations()
+            return [relation.put_into_dto() for relation in relations]
         
         @api.doc(security='Bearer')
         @token_required
@@ -1145,14 +1136,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, doctor_id):
             """Get all symptoms for a specific doctor"""
             from my_project.auth.controller import doctorsymptomes_controller
-            try:
-                relations = doctorsymptomes_controller.find_symptomes_by_doctor(doctor_id)
-                if not relations:
-                    api.abort(404, 'No symptoms found for this doctor')
-                return [relation.symptome.put_into_dto() for relation in relations]
-            except Exception as e:
-                print(f"Error getting symptoms for doctor {doctor_id}: {e}")
-                api.abort(500, 'Internal server error')
+            relations = doctorsymptomes_controller.find_symptomes_by_doctor(doctor_id)
+            if not relations:
+                api.abort(404, 'No symptoms found for this doctor')
+            return [relation.symptome.put_into_dto() for relation in relations]
     
     @ns_relations.route('/by_symptom/<int:symptom_id>')
     class DoctorsBySymptom(Resource):
@@ -1160,14 +1147,10 @@ def _init_swagger(app: Flask) -> None:
         def get(self, symptom_id):
             """Get all doctors for a specific symptom"""
             from my_project.auth.controller import doctorsymptomes_controller
-            try:
-                relations = doctorsymptomes_controller.find_doctors_by_symptom(symptom_id)
-                if not relations:
-                    api.abort(404, 'No doctors found for this symptom')
-                return [relation.doctor.put_into_dto() for relation in relations]
-            except Exception as e:
-                print(f"Error getting doctors for symptom {symptom_id}: {e}")
-                api.abort(500, 'Internal server error')
+            relations = doctorsymptomes_controller.find_doctors_by_symptom(symptom_id)
+            if not relations:
+                api.abort(404, 'No doctors found for this symptom')
+            return [relation.doctor.put_into_dto() for relation in relations]
     
     @ns_relations.route('/<int:doctor_id>/<int:symptom_id>')
     class DoctorSymptomRelation(Resource):
@@ -1185,14 +1168,8 @@ def _init_swagger(app: Flask) -> None:
         def get(self):
             """Get all doctor-symptom relations with details"""
             from my_project.auth.controller import doctorsymptomes_controller
-            try:
-                details = doctorsymptomes_controller.find_with_details()
-                if details is None:
-                    return []
-                return [row._asdict() for row in details]
-            except Exception as e:
-                print(f"Error getting relations details: {e}")
-                return []
+            details = doctorsymptomes_controller.find_with_details()
+            return [row._asdict() for row in details]
     
     # Health check endpoint
     @ns_health.route('/status')
@@ -1297,9 +1274,13 @@ def _init_swagger(app: Flask) -> None:
             ]
         })
 
+#1
 def _init_trigger(app: Flask) -> None:
     with app.app_context():
+            # Drop the trigger if it exists
             db.session.execute('DROP TRIGGER IF EXISTS trigger_specialty_id;')
+
+            # Create the trigger
             db.session.execute('''
             CREATE TRIGGER trigger_specialty_id
             BEFORE INSERT ON doctors
@@ -1317,8 +1298,36 @@ def _init_trigger(app: Flask) -> None:
             END;
             ''')
 
+
+            #3a,b,c
+
+
+
+
             db.session.execute('DROP TRIGGER IF EXISTS prevent_symptomes_deletion;')
+            # db.session.execute('''
+            #
+            #            CREATE TRIGGER prevent_symptomes_deletion
+            #            BEFORE DELETE ON symptomes
+            #            FOR EACH ROW
+            #            BEGIN
+            #                SIGNAL SQLSTATE '45000'
+            #                SET MESSAGE_TEXT = 'Deleting rows from Symptomes is not allowed';
+            #            END;
+            #            ''')
             db.session.execute('DROP TRIGGER IF EXISTS prevent_specialty_name_ending_with_00;')
+            # db.session.execute('''
+            #
+            #                     CREATE TRIGGER prevent_specialty_name_ending_with_00
+            #                     BEFORE INSERT ON specialties
+            #                     FOR EACH ROW
+            #                     BEGIN
+            #                         IF RIGHT(NEW.specialty_name, 2) = '00' THEN
+            #                             SIGNAL SQLSTATE '45000'
+            #                             SET MESSAGE_TEXT = 'Specialty name cannot end with "00"';
+            #                         END IF;
+            #                     END;
+            #                        ''')
 
             db.session.execute('DROP TRIGGER IF EXISTS validate_specialty_name;')
             db.session.execute('''
@@ -1361,175 +1370,6 @@ def _init_procedures(app: Flask) -> None:
                 VALUES (p_doctor_id, p_symptome_id);
             END;
           ''')
-        db.session.commit()
-
-def _init_sample_data(app: Flask) -> None:
-    with app.app_context():
-        from my_project.auth.domain.orders.specialities import Specialties
-        from my_project.auth.domain.orders.doctors import Doctors
-        from my_project.auth.domain.orders.patients import Patients
-        from my_project.auth.domain.orders.illnesses import Illnesses
-        from my_project.auth.domain.orders.symptomes import Symptomes
-        from my_project.auth.domain.orders.appointments import Appointments
-        from my_project.auth.domain.orders.billing import Billing
-        from my_project.auth.domain.orders.diagnoses import Diagnoses
-        from my_project.auth.domain.orders.scedules import Schedules
-        from my_project.auth.domain.orders.appointmentbookings import AppointmentBookings
-        from my_project.auth.domain.orders.recoveryprotocol import RecoveryProtocol
-        from my_project.auth.domain.orders.doctorsymptomes import DoctorSymptomes
-        
-        if db.session.query(Specialties).count() == 0:
-            specialties_data = [
-                {'specialty_name': 'Cardiology'},
-                {'specialty_name': 'Neurology'},
-                {'specialty_name': 'Pediatrics'},
-                {'specialty_name': 'Dermatology'},
-                {'specialty_name': 'Orthopedics'}
-            ]
-            for spec_data in specialties_data:
-                specialty = Specialties(**spec_data)
-                db.session.add(specialty)
-        
-        if db.session.query(Doctors).count() == 0:
-            doctors_data = [
-                {'first_name': 'John', 'last_name': 'Smith', 'specialty_id': 1, 'phone_number': '+1234567890', 'email': 'john.smith@hospital.com'},
-                {'first_name': 'Sarah', 'last_name': 'Johnson', 'specialty_id': 2, 'phone_number': '+1234567891', 'email': 'sarah.johnson@hospital.com'},
-                {'first_name': 'Michael', 'last_name': 'Brown', 'specialty_id': 3, 'phone_number': '+1234567892', 'email': 'michael.brown@hospital.com'},
-                {'first_name': 'Emily', 'last_name': 'Davis', 'specialty_id': 4, 'phone_number': '+1234567893', 'email': 'emily.davis@hospital.com'},
-                {'first_name': 'David', 'last_name': 'Wilson', 'specialty_id': 5, 'phone_number': '+1234567894', 'email': 'david.wilson@hospital.com'}
-            ]
-            for doc_data in doctors_data:
-                doctor = Doctors(**doc_data)
-                db.session.add(doctor)
-        
-        if db.session.query(Patients).count() == 0:
-            patients_data = [
-                {'first_name': 'Alice', 'last_name': 'Johnson', 'date_of_birth': '1990-05-15', 'phone_number': '+1987654321', 'email': 'alice.johnson@email.com', 'address': '123 Main St'},
-                {'first_name': 'Bob', 'last_name': 'Smith', 'date_of_birth': '1985-08-22', 'phone_number': '+1987654322', 'email': 'bob.smith@email.com', 'address': '456 Oak Ave'},
-                {'first_name': 'Carol', 'last_name': 'Williams', 'date_of_birth': '1992-12-10', 'phone_number': '+1987654323', 'email': 'carol.williams@email.com', 'address': '789 Pine St'},
-                {'first_name': 'Daniel', 'last_name': 'Brown', 'date_of_birth': '1988-03-18', 'phone_number': '+1987654324', 'email': 'daniel.brown@email.com', 'address': '321 Elm St'},
-                {'first_name': 'Eva', 'last_name': 'Garcia', 'date_of_birth': '1995-07-25', 'phone_number': '+1987654325', 'email': 'eva.garcia@email.com', 'address': '654 Maple Ave'}
-            ]
-            for pat_data in patients_data:
-                patient = Patients(**pat_data)
-                db.session.add(patient)
-        
-        if db.session.query(Illnesses).count() == 0:
-            illnesses_data = [
-                {'illness_name': 'Hypertension', 'treatment_plan': 'Medication and lifestyle changes'},
-                {'illness_name': 'Diabetes', 'treatment_plan': 'Insulin therapy and diet control'},
-                {'illness_name': 'Migraine', 'treatment_plan': 'Pain management and trigger avoidance'},
-                {'illness_name': 'Arthritis', 'treatment_plan': 'Anti-inflammatory medication and physical therapy'},
-                {'illness_name': 'Asthma', 'treatment_plan': 'Inhaler medication and environmental control'}
-            ]
-            for ill_data in illnesses_data:
-                illness = Illnesses(**ill_data)
-                db.session.add(illness)
-        
-        if db.session.query(Symptomes).count() == 0:
-            symptoms_data = [
-                {'symptome_name': 'Headache'},
-                {'symptome_name': 'Fever'},
-                {'symptome_name': 'Cough'},
-                {'symptome_name': 'Chest Pain'},
-                {'symptome_name': 'Shortness of Breath'},
-                {'symptome_name': 'Nausea'},
-                {'symptome_name': 'Dizziness'},
-                {'symptome_name': 'Fatigue'}
-            ]
-            for symp_data in symptoms_data:
-                symptom = Symptomes(**symp_data)
-                db.session.add(symptom)
-        
-        if db.session.query(Appointments).count() == 0:
-            appointments_data = [
-                {'doctor_id': 1, 'patient_id': 1, 'appointment_date': '2024-01-15', 'appointment_time': '09:00:00', 'consultation_fee': 150.0},
-                {'doctor_id': 2, 'patient_id': 2, 'appointment_date': '2024-01-16', 'appointment_time': '10:30:00', 'consultation_fee': 175.0},
-                {'doctor_id': 3, 'patient_id': 3, 'appointment_date': '2024-01-17', 'appointment_time': '14:00:00', 'consultation_fee': 200.0},
-                {'doctor_id': 4, 'patient_id': 4, 'appointment_date': '2024-01-18', 'appointment_time': '11:15:00', 'consultation_fee': 160.0},
-                {'doctor_id': 5, 'patient_id': 5, 'appointment_date': '2024-01-19', 'appointment_time': '15:30:00', 'consultation_fee': 180.0}
-            ]
-            for appt_data in appointments_data:
-                appointment = Appointments(**appt_data)
-                db.session.add(appointment)
-        
-        if db.session.query(Billing).count() == 0:
-            billing_data = [
-                {'appointment_id': 1, 'total_amount': 150.0, 'payment_status': 'Paid', 'payment_method': 'Credit Card', 'billing_date': '2024-01-15'},
-                {'appointment_id': 2, 'total_amount': 175.0, 'payment_status': 'Pending', 'payment_method': 'Cash', 'billing_date': '2024-01-16'},
-                {'appointment_id': 3, 'total_amount': 200.0, 'payment_status': 'Paid', 'payment_method': 'Insurance', 'billing_date': '2024-01-17'},
-                {'appointment_id': 4, 'total_amount': 160.0, 'payment_status': 'Overdue', 'payment_method': 'Credit Card', 'billing_date': '2024-01-18'},
-                {'appointment_id': 5, 'total_amount': 180.0, 'payment_status': 'Paid', 'payment_method': 'Cash', 'billing_date': '2024-01-19'}
-            ]
-            for bill_data in billing_data:
-                billing = Billing(**bill_data)
-                db.session.add(billing)
-        
-        if db.session.query(Diagnoses).count() == 0:
-            diagnoses_data = [
-                {'illness_id': 1, 'doctor_id': 1, 'patient_id': 1, 'diagnosis_date': '2024-01-15'},
-                {'illness_id': 2, 'doctor_id': 2, 'patient_id': 2, 'diagnosis_date': '2024-01-16'},
-                {'illness_id': 3, 'doctor_id': 3, 'patient_id': 3, 'diagnosis_date': '2024-01-17'},
-                {'illness_id': 4, 'doctor_id': 4, 'patient_id': 4, 'diagnosis_date': '2024-01-18'},
-                {'illness_id': 5, 'doctor_id': 5, 'patient_id': 5, 'diagnosis_date': '2024-01-19'}
-            ]
-            for diag_data in diagnoses_data:
-                diagnosis = Diagnoses(**diag_data)
-                db.session.add(diagnosis)
-        
-        if db.session.query(Schedules).count() == 0:
-            schedules_data = [
-                {'doctor_id': 1, 'day_of_week': 'Monday', 'start_time': '09:00:00', 'end_time': '17:00:00'},
-                {'doctor_id': 1, 'day_of_week': 'Wednesday', 'start_time': '09:00:00', 'end_time': '17:00:00'},
-                {'doctor_id': 2, 'day_of_week': 'Tuesday', 'start_time': '08:00:00', 'end_time': '16:00:00'},
-                {'doctor_id': 2, 'day_of_week': 'Thursday', 'start_time': '08:00:00', 'end_time': '16:00:00'},
-                {'doctor_id': 3, 'day_of_week': 'Monday', 'start_time': '10:00:00', 'end_time': '18:00:00'},
-                {'doctor_id': 3, 'day_of_week': 'Friday', 'start_time': '10:00:00', 'end_time': '18:00:00'}
-            ]
-            for sched_data in schedules_data:
-                schedule = Schedules(**sched_data)
-                db.session.add(schedule)
-        
-        if db.session.query(AppointmentBookings).count() == 0:
-            bookings_data = [
-                {'appointment_id': 1, 'booking_date': '2024-01-10', 'booking_time': '08:30:00'},
-                {'appointment_id': 2, 'booking_date': '2024-01-11', 'booking_time': '09:45:00'},
-                {'appointment_id': 3, 'booking_date': '2024-01-12', 'booking_time': '13:30:00'},
-                {'appointment_id': 4, 'booking_date': '2024-01-13', 'booking_time': '10:45:00'},
-                {'appointment_id': 5, 'booking_date': '2024-01-14', 'booking_time': '14:45:00'}
-            ]
-            for book_data in bookings_data:
-                booking = AppointmentBookings(**book_data)
-                db.session.add(booking)
-        
-        if db.session.query(RecoveryProtocol).count() == 0:
-            recovery_data = [
-                {'doctor_id': 1, 'patient_id': 1, 'recovery_plan': 'Regular exercise and medication adherence'},
-                {'doctor_id': 2, 'patient_id': 2, 'recovery_plan': 'Blood sugar monitoring and dietary changes'},
-                {'doctor_id': 3, 'patient_id': 3, 'recovery_plan': 'Stress management and regular sleep schedule'},
-                {'doctor_id': 4, 'patient_id': 4, 'recovery_plan': 'Physical therapy and joint protection'},
-                {'doctor_id': 5, 'patient_id': 5, 'recovery_plan': 'Inhaler training and environmental modifications'}
-            ]
-            for rec_data in recovery_data:
-                recovery = RecoveryProtocol(**rec_data)
-                db.session.add(recovery)
-        
-        if db.session.query(DoctorSymptomes).count() == 0:
-            relations_data = [
-                {'doctor_id': 1, 'symptome_id': 4},
-                {'doctor_id': 1, 'symptome_id': 5},
-                {'doctor_id': 2, 'symptome_id': 1},
-                {'doctor_id': 2, 'symptome_id': 7},
-                {'doctor_id': 3, 'symptome_id': 2},
-                {'doctor_id': 3, 'symptome_id': 3},
-                {'doctor_id': 4, 'symptome_id': 6},
-                {'doctor_id': 5, 'symptome_id': 5},
-                {'doctor_id': 5, 'symptome_id': 8}
-            ]
-            for rel_data in relations_data:
-                relation = DoctorSymptomes(**rel_data)
-                db.session.add(relation)
-        
         db.session.commit()
 
 def _init_db(app: Flask) -> None:
