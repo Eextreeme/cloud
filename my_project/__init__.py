@@ -51,7 +51,7 @@ def init_autodoc_swagger(app: Flask) -> None:
         "info": {
             "title": "Medical Management System API Dobryi Developer",
             "version": "1.0.0",
-            "description": "Complete REST API for medical management system with authentication",
+            "description": "Complete REST API for medical management system with authentication 1231231231231231231212312321",
             "contact": {"name": "Andrii Pavelchak", "email": "apavelchak@gmail.com"},
             "license": {"name": "MIT"},
         },
