@@ -13,6 +13,7 @@ import jwt
 from typing import Dict, Any
 from functools import wraps
 from urllib.parse import quote_plus
+#hello world
 
 from dotenv import load_dotenv
 from flasgger import Swagger
@@ -42,14 +43,14 @@ todos = {}
 def init_autodoc_swagger(app: Flask) -> None:
     app.config.setdefault("SWAGGER", {
         "uiversion": 3,
-        "title": "Medical Management System API Dobryi Developer",
+        "title": "Medical Management System API",
         "openapi": "3.0.3",
     })
 
     swagger_template = {
         "openapi": "3.0.3",
         "info": {
-            "title": "Medical Management System API Dobryi Developer",
+            "title": "Medical Management System API",
             "version": "1.0.0",
             "description": "Complete REST API for medical management system with authentication 1231231231231231231212312321",
             "contact": {"name": "Andrii Pavelchak", "email": "apavelchak@gmail.com"},
