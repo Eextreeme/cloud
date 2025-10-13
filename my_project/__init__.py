@@ -174,7 +174,7 @@ def _init_swagger(app: Flask) -> None:
     # Appointment models
     appointment_model = api.model('Appointment', {
         'appointment_id': fields.Integer(description='Appointment ID'),
-        'doctor_id': fields.Integer(description='Doctor ID'),
+
         'patient_id': fields.Integer(description='Patient ID'),
         'appointment_date': fields.Date(required=True, description='Appointment date'),
         'appointment_time': fields.String(required=True, description='Appointment time'),
